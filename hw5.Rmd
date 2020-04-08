@@ -1,6 +1,14 @@
+---
+title: "HW5"
+author: "Brandon Xicon:xiconb"
+date: "4/8/2020"
+output: html_document
+---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+*Note that reading data and loading packages is hidden on the HTML for readabilty*
 
 ## Liquor Sales in Iowa
 
@@ -15,7 +23,7 @@ This dataset https://data.iowa.gov/Sales-Distribution/2019-Iowa-Liquor-Sales/38x
   c. Add a New Filter Condition: City is Ames.
   d. Export -- CSV -- Download
   e. Use `readr::read_csv` to import.
-```{r}
+```{r include=FALSE}
 library(dplyr)
 library(lubridate)
 library(tidyverse)
@@ -52,25 +60,40 @@ Liquor
 3. First overview:
   a. Plot a scatterplot of lat and long of store locations. 
 ```{r}
-Liquor %>% ggplot(aes(x=Latitude, y=Longitude)) + geom_point() + 
+Liquor %>% ggplot(aes(x=Longitude, y=Latitude)) + geom_point() + 
   ggtitle("Latitude vs Longitude of Liquor Stores in Ames")
 ```
   b. Provide a visual breakdown of the liquor category (by `Category Name`). Include volume sold in the breakdown.
 ```{r}
-ggplot(Liquor,aes(x=`Category Name`, count=`Volume Sold (Liters)`)) + 
-  geom_bar(position=position_dodge(width = .5)) + ylab('Volume Sold (Liters)') + 
-  ggtitle("Voume of Alcohol Sold in Each Category")+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
-
+#ggplot(Liquor,aes(x=`Category Name`, count=`Volume Sold (Liters)`)) + 
+ # geom_bar(position=position_dodge(width = .5)) + 
+  #ylab('Volume Sold (Liters)') + 
+  #ggtitle("Voume of Alcohol Sold in Each Category")+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
+Liquor %>%
+  filter(!is.na(`Category Name`)) %>%
+  group_by(`Category Name`) %>%
+  summarize(`Volume(Liters)` = sum(`Volume Sold (Liters)`)) %>%
+  ggplot(aes(x = `Category Name`, y = `Volume(Liters)`)) +
+  geom_bar(stat = "identity") +
+ggtitle("Voume of Alcohol Sold in Each Category")+theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))
 ```
 4. Find the daily sales liquor sales in Ames in 2019. Summarize the number of sales, volume of liquor sold, and amount of money spent.
 ```{r}
-
+Liquor2<-Liquor %>%
+  group_by(Month, Day,Year) %>%
+  summarize(`Number of Sales` = n(), `Total Volume Sold (Liters)` = sum(`Volume Sold (Liters)`),
+            `Money Spent` = sum(`Sale (Dollars)`)) %>%
+  arrange(Month,Day,Year,desc(`Number of Sales`))
+Liquor2
 ```
 5. Plot volume sold by day (use a scatterplot of volume by day and facet by month). Discover trends with the help of `geom_smooth`. Describe any patterns.
 ```{r}
+ggplot(Liquor2,aes(x=Day,y=`Total Volume Sold (Liters)`))+facet_wrap(. ~Month)+geom_point()+geom_smooth()+
+  ylim(0, 15000)
 ```
 6. Find the dates for ISU football home games in Fall 2019. Can you see a pattern? 
-```{r}
+`
+home games were 8/31,9/14,9/21,10/5,10/26,11/16,11/23
+These points do not exist in our dataframe however based on the best fit lines above we see that the spikes or high points in each month seemed to correspond to the home games. 
 
-```
 Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
